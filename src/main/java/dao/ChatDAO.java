@@ -12,7 +12,6 @@ public class ChatDAO {
 	private final String DB_USER = "root";
 	private final String DB_PASS = "admin";
 	
-	
     // ユーザーのチャットを時間とともに格納する
 	public boolean addChat(User user, String chat, String date) {
 		// チャットを登録する
