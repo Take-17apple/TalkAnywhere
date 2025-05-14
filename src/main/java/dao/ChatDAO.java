@@ -30,4 +30,5 @@ public class ChatDAO {
 		}
 		return false;
 	}
+	
 }
