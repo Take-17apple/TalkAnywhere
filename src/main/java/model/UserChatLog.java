@@ -6,30 +6,51 @@ import java.util.List;
 
 public class UserChatLog implements Serializable {
 	private User user;
+	private String chat;
 	private List<String> chatHistory;
 	
 	public UserChatLog() {
-		this.chatHistory = new ArrayList<>();
+		
 	}
 	public UserChatLog(User user) {
+		if (this.chatHistory == null || this.chatHistory.isEmpty()) {
+			this.chatHistory = new ArrayList<>();
+		}
 		this.user = user;
-		this.chatHistory = new ArrayList<>();
 	}
-	public void addChat(String chat) {
-		this.chatHistory.add(chat);
+	public UserChatLog(User user, String chat) {
+		this.user = user;
+		this.chat = chat;
 	}
 	public User getUser() {
-		return user;
+		return this.user;
+	}
+	public String getChat() {
+		return this.chat;
 	}
 	public List<String> getChatHistory() {
-		return chatHistory;
+		return this.chatHistory;
 	}
-	@Override
-	public String toString() {
-		// チャットの中身を返す
-		if (!this.chatHistory.isEmpty()) {
-			return chatHistory.toString();
+	public int getUserId() {
+		if (user != null) {
+			return this.user.getUserId();
 		}
-		return "チャットは保存されていません";
+		return 0;
+	}
+	public void setUserChat(User user, String chat) {
+		this.user = user;
+		this.chat = chat;
+	}
+	public void setUser(User user) {
+		if (this.user == null) {
+			this.user = new User();
+		}
+		this.user = user;
+	}
+	public void setChat(String chat) {
+		if (this.chatHistory == null || this.chatHistory.isEmpty()) {
+			chatHistory = new ArrayList<>();
+		}
+		this.chatHistory.add(chat);
 	}
 }

@@ -1,8 +1,7 @@
 package servlet;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.sql.Timestamp;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
@@ -34,6 +33,16 @@ public class TalkServlet extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		User user = (User)session.getAttribute("user");
+		UserChatLog userChatLog = (UserChatLog)session.getAttribute("userChatLog");
+		if (userChatLog == null) {
+			userChatLog = new UserChatLog(user);
+		} else if (userChatLog.getUser() == null) {
+			userChatLog.setUser(user);
+		}
+		new ChatLogic().getChatHistory(userChatLog);
+		session.setAttribute("userChatLog", userChatLog);
 		// トーク画面へ遷移
 		RequestDispatcher dispatcher = request.getRequestDispatcher("WEB-INF/jsp/talk.jsp"); 
 		dispatcher.forward(request, response);
@@ -45,8 +54,7 @@ public class TalkServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setCharacterEncoding("UTF-8");
 		String chat = request.getParameter("chat");
-		Date date = new Date();
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy'年'MM'月'dd'日'E'曜日'K'時'mm'分'ss'秒'");
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		
 		if (chat == null || chat.isBlank()) {
 			// エラーメッセージをセットし、トーク画面へ戻る
@@ -54,19 +62,20 @@ public class TalkServlet extends HttpServlet {
 		} else {
 			HttpSession session = request.getSession();
 			User user = (User)session.getAttribute("user");
+			UserChatLog userChatLog = (UserChatLog)session.getAttribute("userChatLog");
+			if (userChatLog == null) {
+				userChatLog = new UserChatLog(user, chat);
+			} else {
+				userChatLog.setUserChat(user, chat);
+			}
 			// 送られてきたチャットをデータベースに登録する
-			boolean isChatRegistration = new ChatLogic().userChat(user, chat, sdf.format(date));
+			boolean isChatRegistration = new ChatLogic().addUserChat(userChatLog, timestamp);
 			if (isChatRegistration == false) {
 				// エラーメッセージをセットし、トーク画面へ戻る
 				request.setAttribute("errorMsg", "トークが送信されませんでした");
-			} else {
-				UserChatLog userChatLog = (UserChatLog)session.getAttribute("userChatLog");
-				if (userChatLog == null) {
-					userChatLog = new UserChatLog(user);
-				}
-				userChatLog.addChat(chat);
-				session.setAttribute("userChatLog", userChatLog);
-			}
+			} 
+			session.setAttribute("userChatLog", userChatLog);
+			session.setAttribute("aiChatLog", userChatLog);
 		}
 		RequestDispatcher dispatcher = request.getRequestDispatcher("WEB-INF/jsp/talk.jsp"); 
 		dispatcher.forward(request, response);
